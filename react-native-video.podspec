@@ -29,6 +29,14 @@ Pod::Spec.new do |s|
     s.static_framework = true
   end
 
+  s.subspec "VideoGoogleIMA" do |ss|
+    ss.dependency "react-native-video/Video"
+    ss.dependency 'GoogleAds-IMA-iOS-SDK', '~> 3.9'
+
+    ss.source_files = "ios/VideoGoogleIMA/**/*.{h,m}"
+    s.static_framework = true
+  end
+
   s.dependency "React"
 
   s.default_subspec = "Video"

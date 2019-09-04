@@ -12,6 +12,10 @@
 #import <DVAssetLoaderDelegate/DVAssetLoaderDelegate.h>
 #endif
 
+#if __has_include(<react-native-video/RCTVideoGoogleIMA.h>)
+#import <react-native-video/RCTVideoGoogleIMA.h>
+#endif
+
 @class RCTEventDispatcher;
 #if __has_include(<react-native-video/RCTVideoCache.h>)
 @interface RCTVideo : UIView <RCTVideoPlayerViewControllerDelegate, DVAssetLoaderDelegatesDelegate>
@@ -48,5 +52,8 @@
 - (AVPlayerViewController*)createPlayerViewController:(AVPlayer*)player withPlayerItem:(AVPlayerItem*)playerItem;
 
 - (void)save:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
+
+@property (readonly) BOOL paused;
+-(void) setupWithPlayer:(AVPlayer *) player playerItem:(AVPlayerItem *) playerItem source:(NSDictionary *) source;
 
 @end
