@@ -348,37 +348,53 @@ static int const RCTVideoUnset = -1;
 
     // perform on next run loop, otherwise other passed react-props may not be set
     [self playerItemForSource:source withCallback:^(AVPlayerItem * playerItem) {
-      _playerItem = playerItem;
-      [self addPlayerItemObservers];
-      [self setFilter:_filterName];
-      [self setMaxBitRate:_maxBitRate];
-      
-      [_player pause];
-      [_playerViewController.view removeFromSuperview];
-      _playerViewController = nil;
-        
-      if (_playbackRateObserverRegistered) {
+        AVPlayer* avPlayer = nil;
+        if (self->_rctVideoDelegate != nil && [self->_rctVideoDelegate respondsToSelector:@selector(didSetupPlayerWithPlayerItem:withSource:)]) {
+            avPlayer = [self->_rctVideoDelegate didSetupPlayerWithPlayerItem:playerItem withSource:source];
+        }
+        if (!avPlayer) {
+            [self setupWithPlayer:avPlayer playerItem:playerItem source:source];
+        }
+    }];
+  });
+  _videoLoadStarted = YES;
+}
+
+-(void) setupWithPlayer:(AVPlayer *)player playerItem:(AVPlayerItem *)playerItem source:(NSDictionary *)source {
+    _playerItem = playerItem;
+    [self addPlayerItemObservers];
+    [self setFilter:_filterName];
+    [self setMaxBitRate:_maxBitRate];
+
+    [_player pause];
+    [_playerViewController.view removeFromSuperview];
+    _playerViewController = nil;
+
+    if (_playbackRateObserverRegistered) {
         [_player removeObserver:self forKeyPath:playbackRate context:nil];
         _playbackRateObserverRegistered = NO;
-      }
-      if (_isExternalPlaybackActiveObserverRegistered) {
+    }
+    if (_isExternalPlaybackActiveObserverRegistered) {
         [_player removeObserver:self forKeyPath:externalPlaybackActive context:nil];
         _isExternalPlaybackActiveObserverRegistered = NO;
-      }
-        
-      _player = [AVPlayer playerWithPlayerItem:_playerItem];
-      _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-        
-      [_player addObserver:self forKeyPath:playbackRate options:0 context:nil];
-      _playbackRateObserverRegistered = YES;
-      
-      [_player addObserver:self forKeyPath:externalPlaybackActive options:0 context:nil];
-      _isExternalPlaybackActiveObserverRegistered = YES;
-        
-      [self addPlayerTimeObserver];
+    }
 
-      //Perform on next run loop, otherwise onVideoLoadStart is nil
-      if (self.onVideoLoadStart) {
+    _player = player;
+    if (_player == nil) {
+        _player = [AVPlayer playerWithPlayerItem:playerItem];
+    }
+    _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+
+    [_player addObserver:self forKeyPath:playbackRate options:0 context:nil];
+    _playbackRateObserverRegistered = YES;
+
+    [_player addObserver:self forKeyPath:externalPlaybackActive options:0 context:nil];
+    _isExternalPlaybackActiveObserverRegistered = YES;
+
+    [self addPlayerTimeObserver];
+
+    //Perform on next run loop, otherwise onVideoLoadStart is nil
+    if (self.onVideoLoadStart) {
         id uri = [source objectForKey:@"uri"];
         id type = [source objectForKey:@"type"];
         self.onVideoLoadStart(@{@"src": @{
@@ -387,10 +403,8 @@ static int const RCTVideoUnset = -1;
                                         @"isNetwork": [NSNumber numberWithBool:(bool)[source objectForKey:@"isNetwork"]]},
                                     @"target": self.reactTag
                                 });
-      }
-    }];
-  });
-  _videoLoadStarted = YES;
+    }
+
 }
 
 - (NSURL*) urlFilePath:(NSString*) filepath {

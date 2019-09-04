@@ -12,6 +12,12 @@
 #import <DVAssetLoaderDelegate/DVAssetLoaderDelegate.h>
 #endif
 
+@protocol RCTVideoDelegate <NSObject>
+@optional
+- (void)requestStreamForSource:(NSDictionary *)source;
+- (AVPlayer *)didSetupPlayerWithPlayerItem:(AVPlayerItem *) playerItem withSource:(NSDictionary *) source;
+@end
+
 @class RCTEventDispatcher;
 #if __has_include(<react-native-video/RCTVideoCache.h>)
 @interface RCTVideo : UIView <RCTVideoPlayerViewControllerDelegate, DVAssetLoaderDelegatesDelegate>
@@ -43,10 +49,15 @@
 @property (nonatomic, copy) RCTBubblingEventBlock onPictureInPictureStatusChanged;
 @property (nonatomic, copy) RCTBubblingEventBlock onRestoreUserInterfaceForPictureInPictureStop;
 
+@property (nonatomic, weak) id <RCTVideoDelegate> rctVideoDelegate;
+
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher NS_DESIGNATED_INITIALIZER;
 
 - (AVPlayerViewController*)createPlayerViewController:(AVPlayer*)player withPlayerItem:(AVPlayerItem*)playerItem;
 
 - (void)save:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
+
+@property (readonly) BOOL paused;
+-(void) setupWithPlayer:(AVPlayer *) player playerItem:(AVPlayerItem *) playerItem source:(NSDictionary *) source;
 
 @end
